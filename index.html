@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CS5044  Practical 2  Group 23</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <header class="masthead">
+    <div class="kicker">CS5044 Practical 2 - Group 23</div>
+    <h1>Outplaying disparities at the FIFA World Cup. </h1>
+    <h2 >
+      How have countries performed in relation to their socio-economic standing in the FIFA World Cup over time?
+    </h2>
+  </header>
+
+  <section class="intro">
+
+    <p>
+      Every <strong>qualified</strong> team is ranked on two 0-1 scales for each tournament: a <strong>performance score</strong> (stage reached, with
+      points, goal difference and goals scored as tiebreakers, normalised to [0, 1]) and an
+      <strong>socio-economic score</strong> (the normalised [0, 1] mean of the ticked socio-economic
+      features for each country on the year of each tournament). Then 
+      <strong>overperformance</strong> is calculated as <strong> performance minus economic score </strong>. 
+      A positive score means a national team performed well above its weight, while a negative score means it fell
+      short (adjusted according to that country's underlying socio-economic conditions).
+    </p>
+
+    <details class="intro-glossary">
+      <summary>Click here to find out more about the socio-economic indicators used</summary>
+      <dl>
+        <dt><a href="https://hdr.undp.org/data-center/human-development-index" target="_blank" rel="noopener noreferrer">Human development (HDI)</a></dt>
+        <dd>- A summary of human development. Measured 0-1: where 0 is least developed, and 1 is most developed. Composed of three dimensions: health (life expectancy), knowledge (mean and expected years of schooling), and living standard (gross national income per capita)</dd>
+
+        <dt><a href="https://data.worldbank.org/indicator/NY.GDP.PCAP.CD" target="_blank" rel="noopener noreferrer">GDP per capita</a></dt>
+        <dd>- Total income earned through the production of goods and services. Measured in current USD.</dd>
+
+        <dt><a href="https://data.worldbank.org/indicator/SP.POP.TOTL" target="_blank" rel="noopener noreferrer">Population</a></dt>
+        <dd>- Country population, in millions. Included as a scaling factor - not used as a direct wealth measure.</dd>
+
+        <dt><a href="https://hdr.undp.org/gender-development-index" target="_blank" rel="noopener noreferrer">Gender parity (GDI)</a></dt>
+        <dd>- Female HDI divided by male HDI. Closer to 1 means men and women attain similar levels across health, education and income.</dd>
+
+        <dt><a href="https://hdr.undp.org/data-center/thematic-composite-indices/gender-inequality-index" target="_blank" rel="noopener noreferrer">Gender inequality (GII)</a></dt>
+        <dd>- A summary of gender inequality: composed of measures relating to reproductive health, empowerment and labour market. Measured 0-1: a low score means low gender inequality; high means more, so the value is inverted before averaging to align with the other indicators.</dd>
+
+        <dt><a href="https://data.worldbank.org/indicator/SP.URB.TOTL.IN.ZS" target="_blank" rel="noopener noreferrer">Urban share</a></dt>
+        <dd>- Percentage of population living in urban areas.</dd>
+
+        <dt><a href="https://data.worldbank.org/indicator/SE.TER.ENRR" target="_blank" rel="noopener noreferrer">School enrollment</a></dt>
+        <dd>- Percentage of total school enrollment in given age group.</dd>
+      </dl>
+    </details>
+
+    <p class="intro-howto">
+      <strong>How to explore:</strong> the map gives an overview of overperformance for World Cup countries - blue-ish countries
+      overperformed, red-ish countries underperformed. Drag the timeline to change
+      which tournaments are covered by the visualisations. Additionally, you can choose between Men's and Women's tournaments. Specific confederations (football administrative regions) and socio-economic indicators can be toggled - at least one of both needs to be enabled. Click a country on the map, a bar, or search by name to isolate it
+      across every view.
+    </p>
+  </section>
+
+  <section class="views views-top">
+
+    <section class="view view-map">
+      <header class="view-header">
+        <h2>Cumulative overperformance</h2>
+        <p>
+          Countries shaded <span style="color: #3f7fa8">blue</span> outperformed the economic indicators
+          you've selected over the chosen period, while <span style="color: #b35147">red</span> countries fell
+          short. Hover a country to isolate it below.
+        </p>
+      </header>
+      <div id="map" class="canvas"></div>
+      <div class="legend" id="map-legend"></div>
+    </section>
+
+    <section class="view view-bars">
+      <header class="view-header">
+        <h2 id="bars-title">-</h2>
+        <p id="bars-subtitle">
+          Teams ranked by overperformance for the selected period.
+        </p>
+      </header>
+      <div id="bars" class="canvas"></div>
+    </section>
+
+  </section>
+
+  <section class="controls">
+
+    <div class="control-group control-wide">
+      <p class="control-intro">
+        Select a period on the timeline, pick which confederations and
+        socioeconomic indicators count, and compare men's and women's tournaments
+        since 1990.
+      </p>
+      <div class="control-header">
+        <label for="timeline">Period</label>
+        <output id="range-label">-</output>
+      </div>
+      <div id="timeline" class="timeline"></div>
+    </div>
+
+    <div class="control-group">
+      <label>Competition</label>
+      <div class="segmented" id="gender-filter">
+        <button type="button" data-filter="all" class="active">All</button>
+        <button type="button" data-filter="mens">Men's</button>
+        <button type="button" data-filter="womens">Women's</button>
+      </div>
+    </div>
+
+    <div class="control-group control-search">
+      <label for="country-search">Country</label>
+      <div class="search-wrap" id="country-search-wrap">
+        <input type="text" id="country-search"
+               placeholder="Search by country name"
+               autocomplete="off" spellcheck="false" />
+        <button type="button" class="search-clear" id="country-search-clear" aria-label="Clear country selection">×</button>
+        <div class="search-results" id="country-search-results"></div>
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label>Map metrics</label>
+      <div class="segmented" id="map-metric">
+        <button type="button" data-metric="sum" class="active">Total overperf.</button>
+        <button type="button" data-metric="mean">Average</button>
+      </div>
+    </div>
+
+    <div class="control-group control-wide">
+      <div class="control-header">
+        <label>Confederations <span id="confederation-summary" class="summary-note">all 6</span></label>
+      </div>
+      <div id="confederation-picker" class="pill-group"></div>
+    </div>
+
+    <div class="control-group control-wide">
+      <div class="control-header">
+        <label>Socio economic features <span id="indicator-summary" class="summary-note">all 7</span></label>
+      </div>
+      <div id="indicator-picker" class="pill-group"></div>
+      <p class="control-hint">
+        Economic score is the mean of the ticked features (min-max normalised,
+        inverting GII in order for higher values to represent better performance).
+        Untick features to see how teams performed against specific features.
+      </p>
+    </div>
+  </section>
+
+  <main class="views views-bottom">
+
+    <section class="view view-lines">
+      <header class="view-header view-header-row">
+        <div>
+          <h2>Overperformance over time per feature</h2>
+          <p id="lines-subtitle">
+            One line per selected feature, each tick is a tournament, hover for the winner.
+          </p>
+        </div>
+        <div class="segmented" id="lines-mode">
+          <button type="button" data-mode="separate" class="active">Per feature</button>
+          <button type="button" data-mode="average">Averaged</button>
+        </div>
+      </header>
+      <div id="lines" class="canvas"></div>
+    </section>
+
+    <section class="view view-stats">
+      <header class="view-header">
+        <div class="stats-kicker" id="stats-kicker">Top over-performer in view</div>
+        <h2 id="stats-title">-</h2>
+        <p id="stats-subtitle">Aggregated World Cup record across the selected period.</p>
+      </header>
+      <div id="stats"></div>
+    </section>
+
+    <section class="view view-sunburst">
+      <header class="view-header">
+        <h2>Finishes by round reached</h2>
+        <p>
+          Inner ring: round reached. Middle ring: economic-score quartile (low econ. being the lowest, high econ. being the highest) using the ticked indicators. Outer ring: countries, sized by how often they landed there. Click an arc to zoom in, click the centre to zoom back out.
+        </p>
+      </header>
+      <div id="sunburst" class="canvas"></div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <p>
+      Data: FIFA match records via
+      <a href="https://github.com/jfjelstul/worldcup" target="_blank" rel="noopener noreferrer">jfjelstul/worldcup</a>,
+      <a href="https://hdr.undp.org/data-center/documentation-and-downloads" target="_blank" rel="noopener noreferrer">UNDP Human Development Report 2022</a>
+      composite indices (HDI, GDI, GII, life expectancy, schooling, GNI, population),
+      <a href="https://data.worldbank.org" target="_blank" rel="noopener noreferrer">World Bank WDI</a>
+      (GDP per capita
+      <a href="https://data.worldbank.org/indicator/NY.GDP.PCAP.CD" target="_blank" rel="noopener noreferrer">NY.GDP.PCAP.CD</a>,
+      urban share
+      <a href="https://data.worldbank.org/indicator/SP.URB.TOTL.IN.ZS" target="_blank" rel="noopener noreferrer">SP.URB.TOTL.IN.ZS</a>,
+      tertiary enrolment
+      <a href="https://data.worldbank.org/indicator/SE.TER.ENRR" target="_blank" rel="noopener noreferrer">SE.TER.ENRR</a>),
+      country geometry from
+      <a href="https://www.naturalearthdata.com" target="_blank" rel="noopener noreferrer">Natural Earth</a>
+      via
+      <a href="https://github.com/topojson/world-atlas" target="_blank" rel="noopener noreferrer">topojson/world-atlas</a>,
+      ISO numeric to alpha-3 from
+      <a href="https://github.com/stefangabos/world_countries" target="_blank" rel="noopener noreferrer">stefangabos/world_countries</a>.
+      Built with
+      <a href="https://d3js.org" target="_blank" rel="noopener noreferrer">D3.js v7</a>
+      and
+      <a href="https://github.com/topojson/topojson-client" target="_blank" rel="noopener noreferrer">topojson-client</a>.
+    </p>
+  </footer>
+
+  <div id="tooltip" class="tooltip" role="tooltip" aria-hidden="true"></div>
+
+  <!-- d3 v7, docs at d3js.org -->
+  <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"
+          integrity="sha384-CjloA8y00+1SDAUkjs099PVfnY2KmDC2BZnws9kh8D/lX1s46w6EPhpXdqMfjK6i"
+          crossorigin="anonymous"></script>
+  <!-- topojson-client pulls country features out of the world-atlas topojson (github.com/topojson/topojson-client) -->
+  <script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"
+          integrity="sha384-Ukv1p/xTma6P4/2bY5KzWBw+ydSpXmhCMtyciIQVDJ1RmOxtCYNMF1uXT9T63H67"
+          crossorigin="anonymous"></script>
+
+  <script src="js/map.js"></script>
+  <script src="js/bars.js"></script>
+  <script src="js/timeline.js"></script>
+  <script src="js/lines.js"></script>
+  <script src="js/stats.js"></script>
+  <script src="js/sunburst.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+# Verified to reproduce data/tournament_teams_enriched.csv byte-for-byte
+# on Python 3.14 with these versions.
+pandas==3.0.1
+numpy==2.4.2

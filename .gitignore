@@ -1,0 +1,19 @@
+# Coursework deliverables and private material kept out of the public repo
+_private/
+*.twbx
+*.mp4
+
+# OS junk
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Editors and local tooling
+.vscode/
+.idea/
+.claude/
