@@ -2,7 +2,7 @@
 
 An interactive D3.js dashboard exploring how countries' FIFA World Cup results (men's and women's tournaments, 1990–2022) compare with their socioeconomic standing, using indicators from the UN Development Programme and the World Bank. It was built as a three-person group project for CS5044 Information Visualisation at the University of St Andrews; this repository is my cleaned-up copy of the submission.
 
-**Live demo:** https://daviddiamanti.github.io/outplaying-disparity/
+**Live demo:** https://davidddiamanti.github.io/outplaying-disparity/
 
 ![Dashboard screenshot](docs/screenshot.png)
 
