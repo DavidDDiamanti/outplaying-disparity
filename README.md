@@ -4,10 +4,6 @@ An interactive D3.js dashboard exploring how countries' FIFA World Cup results (
 
 **Live demo:** https://davidddiamanti.github.io/outplaying-disparity/
 
-![Dashboard screenshot](docs/screenshot.png)
-
-<!-- TODO: replace docs/screenshot.png with a real screenshot of the dashboard -->
-
 ## My contribution
 
 I built the majority of the D3 implementation: the five linked views (choropleth map, diverging bar chart, multi-series line chart, KPI panel, zoomable sunburst) and the shared filter state and rendering wiring in `js/main.js`. Two coursemates, who prefer not to be named here, contributed the rest: parts of the D3 work and data preparation, the design-sheet ideation that shaped the layout, and a Tableau workbook used for early exploration (not included in this repository).
