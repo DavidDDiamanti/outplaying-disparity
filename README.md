@@ -1,78 +1,58 @@
 # Outplaying Disparity at the FIFA World Cup
 
-An interactive D3.js dashboard exploring how countries' FIFA World Cup results (men's and women's tournaments, 1990–2022) compare with their socioeconomic standing, using indicators from the UN Development Programme and the World Bank. It was built as a three-person group project for CS5044 Information Visualisation at the University of St Andrews; this repository is my cleaned-up copy of the submission.
+An interactive D3.js dashboard comparing countries' FIFA World Cup results with their socioeconomic standing, across the nine men's and eight women's tournaments from 1990 to 2022. Five linked views (a choropleth map, a diverging bar chart, a line chart, a KPI panel and a zoomable sunburst) share global filters: a year brush, a competition toggle, confederation and indicator pickers, and a country search. Built with D3 v7 and no build step, as group coursework for an information visualisation module at the University of St Andrews. This repository is my cleaned up copy of the submission.
 
-**Live demo:** https://davidddiamanti.github.io/outplaying-disparity/
+Live demo: https://davidddiamanti.github.io/outplaying-disparity/
 
-## My contribution
+## What I built
 
-I built the majority of the D3 implementation: the five linked views (choropleth map, diverging bar chart, multi-series line chart, KPI panel, zoomable sunburst) and the shared filter state and rendering wiring in `js/main.js`. Two coursemates, who prefer not to be named here, contributed the rest: parts of the D3 work and data preparation, the design-sheet ideation that shaped the layout, and a Tableau workbook used for early exploration (not included in this repository).
+I built the majority of the D3 implementation: the five views and the filter state and rendering wiring in `js/main.js`. Two coursemates built the rest: parts of the D3 work and data preparation, the design sheets that shaped the layout, and a Tableau workbook used for early exploration, which is not included in this repository.
 
-## Running it locally
+## How to run it
 
-The page fetches local CSV/JSON files, so it needs a static server — opening `index.html` straight from disk will not load any data.
+1. Install Python 3. The page fetches local CSV and JSON files, so opening `index.html` from disk will not load any data.
+2. From the repo root, start a static server:
 
 ```
 python -m http.server 8000
 ```
 
-Then open http://localhost:8000. There is no build step and there are no npm dependencies; D3 v7 and topojson-client are loaded from a CDN, pinned to exact versions with integrity hashes.
+3. Open `http://localhost:8000`.
 
-To regenerate the dataset:
+To regenerate the dataset, run `pip install -r requirements.txt` (pandas 3.0.1, numpy 2.4.2) and then `python scripts/build_aggregates.py`. This rebuilds `data/tournament_teams_enriched.csv` (408 team entries across 17 tournaments) from the files in `data/raw/` and reproduces the committed file byte for byte.
 
-```
-pip install -r requirements.txt
-python scripts/build_aggregates.py
-```
+## How it works
 
-This rebuilds `data/tournament_teams_enriched.csv` from the files in `data/raw/`, and reproduces the committed file byte-for-byte with the pinned package versions. One honesty note: `data/raw/tournament_teams.csv` is itself a pre-merged artefact (FIFA results already joined with several UNDP and World Bank indicators). The script that produced it was not kept, so the pipeline is reproducible from that file onwards, not from the original downloads.
+Every qualified team gets two scores per tournament. The performance score is the team's rank within its tournament (by stage reached, then points, goal difference and goals scored) scaled to the range 0 to 1. The economic score is the mean of the selected socioeconomic indicators, each min max normalised, with indicators where higher is worse, such as gender inequality, inverted. Overperformance is performance minus economic score: positive means a team did better than its socioeconomic standing predicts. The build script writes reference scores over all 11 indicators, but the dashboard recomputes both scores in the browser from whichever of its 7 indicator toggles are ticked, so the numbers on screen respond live to the filters.
 
-## The overperformance metric
+All linking runs through a single state object in `js/main.js`. Each view (`js/map.js`, `js/bars.js`, `js/lines.js`, `js/stats.js`, `js/sunburst.js`, `js/timeline.js`) is a small factory that returns update and highlight handles and knows nothing about the other views. Filter changes mutate the state and fan out through `renderAll()`, and hover or click events flow back through callbacks in `main.js`. The source CSV is loaded once and never mutated, so toggling an indicator recomputes scores from immutable rows, which is what makes the filtering feel instant.
 
-Each qualified team gets a **performance score** (its rank within the tournament by stage reached, then points, goal difference and goals scored, scaled to 0–1) and an **economic score** (the mean of the selected socioeconomic indicators, each min–max normalised to 0–1, with "higher is worse" indicators such as gender inequality inverted). **Overperformance** is performance minus economic score: positive means a team did better than its socioeconomic standing would predict.
+One honesty note on the pipeline: `data/raw/tournament_teams.csv` is itself an already merged artefact, FIFA results joined with several UNDP and World Bank columns, and the script that produced it was not kept. The pipeline is therefore reproducible from that file onwards, not from the original downloads.
 
-The build script writes reference scores averaged over all 11 indicators, but the dashboard recomputes both scores in the browser from whichever of its 7 indicator toggles are ticked, so the on-screen numbers respond live to the filters.
+## Data and sources
 
-## Where things live
+- [Fjelstul World Cup Database](https://github.com/jfjelstul/worldcup): match results and standings, CC BY 4.0.
+- [UNDP Human Development Reports](https://hdr.undp.org/) via [openwashdata/undpcomposite](https://github.com/openwashdata/undpcomposite): HDI, GDI, GII and population. UNDP HDRO terms, free reproduction with acknowledgement.
+- [World Bank WDI](https://data.worldbank.org): GDP per capita (`NY.GDP.PCAP.CD`), urban share (`SP.URB.TOTL.IN.ZS`), tertiary enrolment (`SE.TER.ENRR`), CC BY 4.0.
+- [topojson/world-atlas](https://github.com/topojson/world-atlas): country geometry, ISC, underlying Natural Earth data public domain.
+- [stefangabos/world_countries](https://github.com/stefangabos/world_countries): ISO country code mapping, MIT.
 
-| Part | File |
-|---|---|
-| Choropleth map and colour legend | `js/map.js` |
-| Diverging bar chart | `js/bars.js` |
-| Multi-series line chart | `js/lines.js` |
-| KPI panel | `js/stats.js` |
-| Zoomable sunburst | `js/sunburst.js` |
-| Year-range brush | `js/timeline.js` |
-| Filter state, view linking, country search | `js/main.js` |
-| Data pipeline | `scripts/build_aggregates.py` |
+Two columns inherited from the merged input, `gdp_per_capita` and `u5_mortality`, came from files that were not recorded; the GDP values match World Bank `NY.GDP.PCAP.CD`.
 
-All cross-view linking runs through a single state object in `js/main.js`: each view is a small factory that returns `update`/`highlight` handles, filter changes mutate the state and fan out through `renderAll()`, and the source CSV is loaded once and never mutated — scores are recomputed from immutable rows whenever an indicator is toggled.
+## Credits
 
-## Data sources
+- [Zoomable sunburst](https://observablehq.com/@d3/zoomable-sunburst), adapted in `js/sunburst.js`.
+- [Diverging bar chart](https://observablehq.com/@d3/diverging-bar-chart), adapted in `js/bars.js`.
+- [World choropleth](https://observablehq.com/@d3/world-choropleth) and [Color legend](https://observablehq.com/@d3/color-legend), adapted in `js/map.js`.
+- [Multi-line chart](https://observablehq.com/@d3/multi-line-chart), adapted in `js/lines.js`.
+- [Snapping range slider with d3-brush](https://observablehq.com/@sarah37/snapping-range-slider-with-d3-brush), adapted in `js/timeline.js`.
 
-| Source | Used for | Licence |
-|---|---|---|
-| [Fjelstul World Cup Database](https://github.com/jfjelstul/worldcup) | Match results, standings, squads for every tournament | CC BY 4.0 |
-| [UNDP Human Development Reports](https://hdr.undp.org/) (via [openwashdata/undpcomposite](https://github.com/openwashdata/undpcomposite)) | HDI, GDI, GII, life expectancy, schooling, GNI, population | UNDP HDRO terms (free reproduction with acknowledgement) |
-| [World Bank WDI](https://data.worldbank.org) | GDP per capita ([NY.GDP.PCAP.CD](https://data.worldbank.org/indicator/NY.GDP.PCAP.CD)), urban share ([SP.URB.TOTL.IN.ZS](https://data.worldbank.org/indicator/SP.URB.TOTL.IN.ZS)), tertiary enrolment ([SE.TER.ENRR](https://data.worldbank.org/indicator/SE.TER.ENRR)) | CC BY 4.0 |
-| [topojson/world-atlas](https://github.com/topojson/world-atlas) | Country geometry (Natural Earth 110m) | ISC (geometry public domain) |
-| [stefangabos/world_countries](https://github.com/stefangabos/world_countries) | ISO numeric to alpha-3 mapping | MIT |
+Full licence texts for adapted code and data are in [NOTICE.md](NOTICE.md).
 
-The MIT licence in this repository covers the code only; the data files keep the licences listed above. Full notices are in [NOTICE.md](NOTICE.md). Two columns inherited from the pre-merged input (`gdp_per_capita`, `u5_mortality`) came from an upstream merge whose exact source files were not recorded; the GDP values are consistent with World Bank NY.GDP.PCAP.CD.
+## Known issues and what I would do differently
 
-## Code adapted from Observable
+The script that merged the original FIFA and UNDP downloads into `tournament_teams.csv` was lost, so part of the data provenance rests on a committed intermediate instead of code. The four chart files each carry an almost identical copy of the tooltip positioning helper, about sixty duplicated lines that belong in one shared module. The build script normalises 11 indicators while the dashboard exposes 7; I would trim the script's output to match. The ranking and normalisation logic has no automated tests and is only verified by eye.
 
-The charts started from Observable's D3 example notebooks, credited at the top of each file and in [NOTICE.md](NOTICE.md):
+## Licence
 
-- [Zoomable sunburst](https://observablehq.com/@d3/zoomable-sunburst) → `js/sunburst.js`
-- [Diverging bar chart](https://observablehq.com/@d3/diverging-bar-chart) → `js/bars.js`
-- [World choropleth](https://observablehq.com/@d3/world-choropleth) and [Color legend](https://observablehq.com/@d3/color-legend) → `js/map.js`
-- [Multi-line chart](https://observablehq.com/@d3/multi-line-chart) → `js/lines.js`
-- [Snapping range slider with d3-brush](https://observablehq.com/@sarah37/snapping-range-slider-with-d3-brush) → `js/timeline.js`
-
-## What I'd do differently
-
-- Keep the full data pipeline. The script that merged the original FIFA and UNDP downloads into `tournament_teams.csv` was lost, so part of the provenance now rests on a committed intermediate instead of code.
-- Extract shared helpers. The four chart files each carry near-identical tooltip positioning code and a few duplicated constants; a small shared module would remove about sixty copy-pasted lines.
-- Align the script with the UI. The build script normalises 11 indicators while the dashboard exposes 7; trimming the unused columns (or exposing all 11) would remove a confusing mismatch.
-- Add regression tests for the ranking and normalisation logic, which currently is only verified by eye.
+MIT for the code, see [LICENSE](LICENSE). The data files keep the licences listed above.
